@@ -1,4 +1,6 @@
 # HTMLParser
-HTML/XML parser in Swift with XPath &amp; CSS support
+HTML/XML parser in Swift with XPath + CSS support
 
-Originally forked from https://github.com/cezheng/Fuzi, with Swift 3 + SPM support.
+This repo was originally forked from https://github.com/cezheng/Fuzi.
+
+Updated for Swift 3, SPM and Linux compatibility.
