@@ -274,51 +274,63 @@ private class RegexConstants {
 }
 
 internal func XPath(fromCSS css: String) -> String {
-  var xpathExpressions = [String]()
-  for expression in css.components(separatedBy: ",") where !expression.isEmpty {
-    var xpathComponents = ["./"]
-    var prefix: String? = nil
-    let expressionComponents = expression.trimmingCharacters(in: CharacterSet.whitespaces).components(separatedBy: CharacterSet.whitespaces)
-    for (idx, var token) in expressionComponents.enumerated() {
-      switch token {
-      case "*" where idx != 0: xpathComponents.append("/*")
-      case ">": prefix = ""
-      case "+": prefix = "following-sibling::*[1]/self::"
-      case "~": prefix = "following-sibling::"
-      default:
-        if prefix == nil && idx != 0 {
-          prefix = "descendant::"
-        }
+    var xpathExpressions = [String]()
+    for expression in css.components(separatedBy: ",") where !expression.isEmpty {
+        var xpathComponents = ["./"]
+        var prefix: String? = nil
+        let expressionComponents = expression.trimmingCharacters(in: CharacterSet.whitespaces).components(separatedBy: CharacterSet.whitespaces)
+        for (idx, var token) in expressionComponents.enumerated() {
+            switch token {
+            case "*" where idx != 0: xpathComponents.append("/*")
+            case ">": prefix = ""
+            case "+": prefix = "following-sibling::*[1]/self::"
+            case "~": prefix = "following-sibling::"
+            default:
+                if prefix == nil && idx != 0 {
+                    prefix = "descendant::"
+                }
 
-        if let symbolRange = token.rangeOfCharacter(from: CharacterSet(charactersIn: "#.[]")) {
-          let symbol = symbolRange.lowerBound == token.startIndex ?"*" :""
-          var xpathComponent = token.substring(to: symbolRange.lowerBound)
-          let nsrange = NSRange(location: 0, length: token.utf16.count)
-          
-          if let result = RegexConstants.idRegex.firstMatch(in: token, options: [], range: nsrange), result.numberOfRanges > 1 {
-            xpathComponent += "\(symbol)[@id = '\(token[result.rangeAt(1)])']"
-          }
-          
-          for result in RegexConstants.classRegex.matches(in: token, options: [], range: nsrange) where result.numberOfRanges > 1 {
-            xpathComponent += "\(symbol)[contains(concat(' ',normalize-space(@class),' '),' \(token[result.rangeAt(1)]) ')]"
-          }
-          
-          for result in RegexConstants.attributeRegex.matches(in: token, options: [], range: nsrange) where result.numberOfRanges > 1 {
-            xpathComponent += "[@\(token[result.rangeAt(1)])]"
-          }
-          
-          token = xpathComponent
+                if let symbolRange = token.rangeOfCharacter(from: CharacterSet(charactersIn: "#.[]")) {
+                    let symbol = symbolRange.lowerBound == token.startIndex ?"*" :""
+                    var xpathComponent = token.substring(to: symbolRange.lowerBound)
+                    let nsrange = NSRange(location: 0, length: token.utf16.count)
+
+                    if let result = RegexConstants.idRegex.firstMatch(in: token, options: [], range: nsrange), result.numberOfRanges > 1 {
+                        #if os(Linux)
+                        xpathComponent += "\(symbol)[@id = '\(token[result.range(at: 1)])']"
+                        #else
+                        xpathComponent += "\(symbol)[@id = '\(token[result.rangeAt(1)])']"
+                        #endif
+                    }
+
+                    for result in RegexConstants.classRegex.matches(in: token, options: [], range: nsrange) where result.numberOfRanges > 1 {
+                        #if os(Linux)
+                        xpathComponent += "\(symbol)[contains(concat(' ',normalize-space(@class),' '),' \(token[result.range(at: 1)]) ')]"
+                        #else
+                        xpathComponent += "\(symbol)[contains(concat(' ',normalize-space(@class),' '),' \(token[result.rangeAt(1)]) ')]"
+                        #endif
+                    }
+
+                    for result in RegexConstants.attributeRegex.matches(in: token, options: [], range: nsrange) where result.numberOfRanges > 1 {
+                        #if os(Linux)
+                        xpathComponent += "[@\(token[result.range(at: 1)])]"
+                        #else
+                        xpathComponent += "[@\(token[result.rangeAt(1)])]"
+                        #endif
+                    }
+
+                    token = xpathComponent
+                }
+
+                if prefix != nil {
+                  token = prefix! + token
+                  prefix = nil
+                }
+
+                xpathComponents.append(token)
+            }
         }
-        
-        if prefix != nil {
-          token = prefix! + token
-          prefix = nil
-        }
-        
-        xpathComponents.append(token)
-      }
+        xpathExpressions.append(xpathComponents.joined(separator: "/"))
     }
-    xpathExpressions.append(xpathComponents.joined(separator: "/"))
-  }
-  return xpathExpressions.joined(separator: " | ")
+    return xpathExpressions.joined(separator: " | ")
 }
