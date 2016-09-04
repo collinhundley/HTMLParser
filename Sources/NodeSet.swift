@@ -21,104 +21,104 @@
 
 import Foundation
 #if os(Linux)
-    import CLibXML2Linux
+import CLibXML2Linux
 #else
-    import CLibXML2Mac
+import CLibXML2Mac
 #endif
 
 /// An enumerable set of XML nodes
 open class NodeSet: Collection {
-  // Index type for `Indexable` protocol
-  public typealias Index = Int
-
-  // IndexDistance type for `Indexable` protocol
-  public typealias IndexDistance = Int
-  
-  fileprivate var cursor = 0
-  open func next() -> XMLElement? {
-    defer {
-      cursor += 1
+    // Index type for `Indexable` protocol
+    public typealias Index = Int
+    
+    // IndexDistance type for `Indexable` protocol
+    public typealias IndexDistance = Int
+    
+    fileprivate var cursor = 0
+    open func next() -> XMLElement? {
+        defer {
+            cursor += 1
+        }
+        if cursor < self.count {
+            return self[cursor]
+        }
+        return nil
     }
-    if cursor < self.count {
-      return self[cursor]
+    
+    /// Number of nodes
+    open fileprivate(set) lazy var count: Int = {
+        return Int(self.cNodeSet?.pointee.nodeNr ?? 0)
+    }()
+    
+    /// First Element
+    open var first: XMLElement? {
+        return count > 0 ? self[startIndex] : nil
     }
-    return nil
-  }
-
-  /// Number of nodes
-  open fileprivate(set) lazy var count: Int = {
-    return Int(self.cNodeSet?.pointee.nodeNr ?? 0)
-  }()
-  
-  /// First Element
-  open var first: XMLElement? {
-    return count > 0 ? self[startIndex] : nil
-  }
-
-  /// if nodeset is empty
-  open var isEmpty: Bool {
-    return (cNodeSet == nil) || (cNodeSet!.pointee.nodeNr == 0) || (cNodeSet!.pointee.nodeTab == nil)
-  }
-
-  /// Start index
-  open var startIndex: Index {
-    return 0
-  }
-
-  /// End index
-  open var endIndex: Index {
-    return count
-  }
-
-  /**
-   Get the Nth node from set.
-
-   - parameter idx: node index
-
-   - returns: the idx'th node, nil if out of range
-  */
-  open subscript(_ idx: Index) -> XMLElement {
-    _precondition(idx >= startIndex && idx < endIndex, "Index of out bound")
-    return XMLElement(cNode: (cNodeSet!.pointee.nodeTab[idx])!, document: document)
-  }
-  
-  /**
-   Get the index after `idx`
-
-   - parameter idx: node index
-
-   - returns: the index after `idx`
-   */
-  open func index(after idx: Index) -> Index {
-    return idx + 1
-  }
-  
-  internal let cNodeSet: xmlNodeSetPtr?
-  internal let document: XMLDocument!
-  
-  internal init(cNodeSet: xmlNodeSetPtr?, document: XMLDocument?) {
-    self.cNodeSet = cNodeSet
-    self.document = document
-  }
+    
+    /// if nodeset is empty
+    open var isEmpty: Bool {
+        return (cNodeSet == nil) || (cNodeSet!.pointee.nodeNr == 0) || (cNodeSet!.pointee.nodeTab == nil)
+    }
+    
+    /// Start index
+    open var startIndex: Index {
+        return 0
+    }
+    
+    /// End index
+    open var endIndex: Index {
+        return count
+    }
+    
+    /**
+     Get the Nth node from set.
+     
+     - parameter idx: node index
+     
+     - returns: the idx'th node, nil if out of range
+     */
+    open subscript(_ idx: Index) -> XMLElement {
+        _precondition(idx >= startIndex && idx < endIndex, "Index of out bound")
+        return XMLElement(cNode: (cNodeSet!.pointee.nodeTab[idx])!, document: document)
+    }
+    
+    /**
+     Get the index after `idx`
+     
+     - parameter idx: node index
+     
+     - returns: the index after `idx`
+     */
+    open func index(after idx: Index) -> Index {
+        return idx + 1
+    }
+    
+    internal let cNodeSet: xmlNodeSetPtr?
+    internal let document: XMLDocument!
+    
+    internal init(cNodeSet: xmlNodeSetPtr?, document: XMLDocument?) {
+        self.cNodeSet = cNodeSet
+        self.document = document
+    }
 }
 
 /// XPath selector result node set
 open class XPathNodeSet: NodeSet {
-  /// Empty node set
-  open static let emptySet = XPathNodeSet(cXPath: nil, document: nil)
-
-  fileprivate var cXPath: xmlXPathObjectPtr?
-  
-  internal init(cXPath: xmlXPathObjectPtr?, document: XMLDocument?) {
-    self.cXPath = cXPath
-    let nodeSet = cXPath?.pointee.nodesetval
-    super.init(cNodeSet: nodeSet, document: document)
-  }
-  
-  deinit {
-    if cXPath != nil {
-      xmlXPathFreeObject(cXPath)
+    /// Empty node set
+    open static let emptySet = XPathNodeSet(cXPath: nil, document: nil)
+    
+    fileprivate var cXPath: xmlXPathObjectPtr?
+    
+    internal init(cXPath: xmlXPathObjectPtr?, document: XMLDocument?) {
+        self.cXPath = cXPath
+        let nodeSet = cXPath?.pointee.nodesetval
+        super.init(cNodeSet: nodeSet, document: document)
     }
-  }
+    
+    deinit {
+        if cXPath != nil {
+            xmlXPathFreeObject(cXPath)
+        }
+    }
 }
 

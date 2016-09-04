@@ -20,139 +20,139 @@
 // THE SOFTWARE.
 
 import Foundation
+import CoreFoundation
 #if os(Linux)
-    import CLibXML2Linux
+import CLibXML2Linux
 #else
-    import CLibXML2Mac
+import CLibXML2Mac
 #endif
 
 /// XML document which can be searched and queried.
 open class XMLDocument {
-  // MARK: - Document Attributes
-  /// The XML version.
-  open fileprivate(set) lazy var version: String? = {
-    return ^-^self.cDocument.pointee.version
-  }()
-  
-  /// The string encoding for the document. This is NSUTF8StringEncoding if no encoding is set, or it cannot be calculated.
-  open fileprivate(set) lazy var encoding: String.Encoding = {
-//    if let encodingName = ^-^self.cDocument.pointee.encoding {
-//      let encoding = CFStringConvertIANACharSetNameToEncoding(encodingName as CFString!)
-//      if encoding != kCFStringEncodingInvalidId {
-//        return String.Encoding(rawValue: UInt(CFStringConvertEncodingToNSStringEncoding(encoding)))
-//      }
-//    }
-    return String.Encoding.utf8
-  }()
+    // MARK: - Document Attributes
+    /// The XML version.
+    open fileprivate(set) lazy var version: String? = {
+        return ^-^self.cDocument.pointee.version
+    }()
 
-  // MARK: - Accessing the Root Element
-  /// The root element of the document.
-  open fileprivate(set) var root: XMLElement?
-  
-  // MARK: - Accessing & Setting Document Formatters
-  /// The formatter used to determine `numberValue` for elements in the document. By default, this is an `NSNumberFormatter` instance with `NSNumberFormatterDecimalStyle`.
-  open lazy var numberFormatter: NumberFormatter = {
-    let formatter = NumberFormatter()
-    formatter.numberStyle = .decimal
-    return formatter
-  }()
-  
-  /// The formatter used to determine `dateValue` for elements in the document. By default, this is an `NSDateFormatter` instance configured to accept ISO 8601 formatted timestamps.
-  open lazy var dateFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.locale = Locale(identifier: "en_US_POSIX")
-    formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
-    return formatter
-  }()
-  
-  // MARK: - Creating XML Documents
-  fileprivate let cDocument: xmlDocPtr
-  
-  /**
-  Creates and returns an instance of XMLDocument from an XML string, throwing XMLError if an error occured while parsing the XML.
-  
-  - parameter string:   The XML string.
-  - parameter encoding: The string encoding.
-  
-  - throws: `XMLError` instance if an error occurred
-  
-  - returns: An `XMLDocument` with the contents of the specified XML string.
-  */
-  public convenience init(string: String, encoding: String.Encoding = String.Encoding.utf8) throws {
-    guard let cChars = string.cString(using: encoding) else {
-      throw XMLError.invalidData
+    /// The string encoding for the document. This is NSUTF8StringEncoding if no encoding is set, or it cannot be calculated.
+    open fileprivate(set) lazy var encoding: String.Encoding = {
+        if let encodingName = ^-^self.cDocument.pointee.encoding {
+            let encoding = CFStringConvertIANACharSetNameToEncoding(encodingName as CFString!)
+            if encoding != kCFStringEncodingInvalidId {
+                return String.Encoding(rawValue: UInt(CFStringConvertEncodingToNSStringEncoding(encoding)))
+            }
+        }
+        return String.Encoding.utf8
+    }()
+
+    // MARK: - Accessing the Root Element
+    /// The root element of the document.
+    open fileprivate(set) var root: XMLElement?
+
+    // MARK: - Accessing & Setting Document Formatters
+    /// The formatter used to determine `numberValue` for elements in the document. By default, this is an `NSNumberFormatter` instance with `NSNumberFormatterDecimalStyle`.
+    open lazy var numberFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        return formatter
+    }()
+
+    /// The formatter used to determine `dateValue` for elements in the document. By default, this is an `NSDateFormatter` instance configured to accept ISO 8601 formatted timestamps.
+    open lazy var dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
+        return formatter
+    }()
+
+    // MARK: - Creating XML Documents
+    fileprivate let cDocument: xmlDocPtr
+
+    /**
+    Creates and returns an instance of XMLDocument from an XML string, throwing XMLError if an error occured while parsing the XML.
+
+    - parameter string:   The XML string.
+    - parameter encoding: The string encoding.
+
+    - throws: `XMLError` instance if an error occurred
+
+    - returns: An `XMLDocument` with the contents of the specified XML string.
+    */
+    public convenience init(string: String, encoding: String.Encoding = String.Encoding.utf8) throws {
+        guard let cChars = string.cString(using: encoding) else {
+            throw XMLError.invalidData
+        }
+        try self.init(cChars: cChars)
     }
-    try self.init(cChars: cChars)
-  }
-  
-  /**
-  Creates and returns an instance of XMLDocument from XML data, throwing XMLError if an error occured while parsing the XML.
-  
-  - parameter data: The XML data.
-  
-  - throws: `XMLError` instance if an error occurred
-  
-  - returns: An `XMLDocument` with the contents of the specified XML string.
-  */
-  public convenience init(data: Data) throws {
-    let cChars = data.withUnsafeBytes { (bytes: UnsafePointer<Int8>) -> [CChar] in
-        let buffer = UnsafeBufferPointer(start: bytes, count: data.count)
-        return [CChar](buffer)
+
+    /**
+    Creates and returns an instance of XMLDocument from XML data, throwing XMLError if an error occured while parsing the XML.
+
+    - parameter data: The XML data.
+
+    - throws: `XMLError` instance if an error occurred
+
+    - returns: An `XMLDocument` with the contents of the specified XML string.
+    */
+    public convenience init(data: Data) throws {
+        let cChars = data.withUnsafeBytes { (bytes: UnsafePointer<Int8>) -> [CChar] in
+            let buffer = UnsafeBufferPointer(start: bytes, count: data.count)
+            return [CChar](buffer)
+        }
+        try self.init(cChars: cChars)
     }
-    
-    try self.init(cChars: cChars)
-  }
-  
-  /**
-  Creates and returns an instance of XMLDocument from C char array, throwing XMLError if an error occured while parsing the XML.
-  
-  - parameter cChars: cChars The XML data as C char array
-  
-  - throws: `XMLError` instance if an error occurred
-  
-  - returns: An `XMLDocument` with the contents of the specified XML string.
-  */
-  public convenience init(cChars: [CChar]) throws {
-    let options = Int32(XML_PARSE_NOWARNING.rawValue | XML_PARSE_NOERROR.rawValue | XML_PARSE_RECOVER.rawValue)
-    try self.init(cChars: cChars, options: options)
-  }
-  
-  fileprivate typealias ParseFunction = (UnsafePointer<Int8>?, Int32, UnsafePointer<Int8>?, UnsafePointer<Int8>?, Int32) -> xmlDocPtr?
-  
-  fileprivate convenience init(cChars: [CChar], options: Int32) throws {
-    try self.init(parseFunction: { xmlReadMemory($0, $1, $2, $3, $4) }, cChars: cChars, options: options)
-  }
-  
-  fileprivate convenience init(parseFunction: ParseFunction, cChars: [CChar], options: Int32) throws {
-    guard let document = parseFunction(UnsafePointer(cChars), Int32(cChars.count), "", nil, options) else {
-      throw XMLError.lastError(defaultError: .parserFailure)
+
+    /**
+    Creates and returns an instance of XMLDocument from C char array, throwing XMLError if an error occured while parsing the XML.
+
+    - parameter cChars: cChars The XML data as C char array
+
+    - throws: `XMLError` instance if an error occurred
+
+    - returns: An `XMLDocument` with the contents of the specified XML string.
+    */
+    public convenience init(cChars: [CChar]) throws {
+        let options = Int32(XML_PARSE_NOWARNING.rawValue | XML_PARSE_NOERROR.rawValue | XML_PARSE_RECOVER.rawValue)
+        try self.init(cChars: cChars, options: options)
     }
-    xmlResetLastError()
-    self.init(cDocument: document)
-  }
-  
-  fileprivate init(cDocument: xmlDocPtr) {
-    self.cDocument = cDocument
-    // cDocument shall not be nil
-    root = XMLElement(cNode: xmlDocGetRootElement(cDocument), document: self)
-  }
-  
-  deinit {
-    xmlFreeDoc(cDocument)
-  }
-  
-  // MARK: - XML Namespaces
-  var defaultNamespaces = [String: String]()
-  
-  /**
-  Define a prefix for a default namespace.
-  
-  - parameter prefix: The prefix name
-  - parameter ns:     The default namespace URI that declared in XML Document
-  */
-  open func definePrefix(_ prefix: String, defaultNamespace ns: String) {
-    defaultNamespaces[ns] = prefix
-  }
+
+    fileprivate typealias ParseFunction = (UnsafePointer<Int8>?, Int32, UnsafePointer<Int8>?, UnsafePointer<Int8>?, Int32) -> xmlDocPtr?
+
+    fileprivate convenience init(cChars: [CChar], options: Int32) throws {
+        try self.init(parseFunction: { xmlReadMemory($0, $1, $2, $3, $4) }, cChars: cChars, options: options)
+    }
+
+    fileprivate convenience init(parseFunction: ParseFunction, cChars: [CChar], options: Int32) throws {
+        guard let document = parseFunction(UnsafePointer(cChars), Int32(cChars.count), "", nil, options) else {
+            throw XMLError.lastError(defaultError: .parserFailure)
+        }
+        xmlResetLastError()
+        self.init(cDocument: document)
+    }
+
+    fileprivate init(cDocument: xmlDocPtr) {
+        self.cDocument = cDocument
+        // cDocument shall not be nil
+        root = XMLElement(cNode: xmlDocGetRootElement(cDocument), document: self)
+    }
+
+    deinit {
+        xmlFreeDoc(cDocument)
+    }
+
+    // MARK: - XML Namespaces
+    var defaultNamespaces = [String: String]()
+
+    /**
+    Define a prefix for a default namespace.
+
+    - parameter prefix: The prefix name
+    - parameter ns:     The default namespace URI that declared in XML Document
+    */
+    open func definePrefix(_ prefix: String, defaultNamespace ns: String) {
+        defaultNamespaces[ns] = prefix
+    }
 }
 
 extension XMLDocument: Equatable {}
@@ -166,44 +166,44 @@ Determine whether two documents are the same
 - returns: whether lhs and rhs are equal
 */
 public func ==(lhs: XMLDocument, rhs: XMLDocument) -> Bool {
-  return lhs.cDocument == rhs.cDocument
+    return lhs.cDocument == rhs.cDocument
 }
 
 /// HTML document which can be searched and queried.
 open class HTMLDocument: XMLDocument {
-  // MARK: - Convenience Accessors
-  
-  /// HTML title of current document
-  open var title: String? {
-    return root?.firstChild(tag: "head")?.firstChild(tag: "title")?.stringValue
-  }
-  
-  /// HTML head element of current document
-  open var head: XMLElement? {
-    return root?.firstChild(tag: "head")
-  }
-  
-  /// HTML body element of current document
-  open var body: XMLElement? {
-    return root?.firstChild(tag: "body")
-  }
-  
-  // MARK: - Creating HTML Documents
-  /**
-  Creates and returns an instance of HTMLDocument from C char array, throwing XMLError if an error occured while parsing the HTML.
-  
-  - parameter cChars: cChars The HTML data as C char array
-  
-  - throws: `XMLError` instance if an error occurred
-  
-  - returns: An `HTMLDocument` with the contents of the specified HTML string.
-  */
-  public convenience init(cChars: [CChar]) throws {
-    let options = Int32(HTML_PARSE_NOWARNING.rawValue | HTML_PARSE_NOERROR.rawValue | HTML_PARSE_RECOVER.rawValue)
-    try self.init(cChars: cChars, options: options)
-  }
-  
-  fileprivate convenience init(cChars: [CChar], options: Int32) throws {
-    try self.init(parseFunction: { htmlReadMemory($0, $1, $2, $3, $4) }, cChars: cChars, options: options)
-  }
+    // MARK: - Convenience Accessors
+
+    /// HTML title of current document
+    open var title: String? {
+        return root?.firstChild(tag: "head")?.firstChild(tag: "title")?.stringValue
+    }
+
+    /// HTML head element of current document
+    open var head: XMLElement? {
+        return root?.firstChild(tag: "head")
+    }
+
+    /// HTML body element of current document
+    open var body: XMLElement? {
+        return root?.firstChild(tag: "body")
+    }
+    
+    // MARK: - Creating HTML Documents
+    /**
+    Creates and returns an instance of HTMLDocument from C char array, throwing XMLError if an error occured while parsing the HTML.
+
+    - parameter cChars: cChars The HTML data as C char array
+
+    - throws: `XMLError` instance if an error occurred
+
+    - returns: An `HTMLDocument` with the contents of the specified HTML string.
+    */
+    public convenience init(cChars: [CChar]) throws {
+        let options = Int32(HTML_PARSE_NOWARNING.rawValue | HTML_PARSE_NOERROR.rawValue | HTML_PARSE_RECOVER.rawValue)
+        try self.init(cChars: cChars, options: options)
+    }
+
+    fileprivate convenience init(cChars: [CChar], options: Int32) throws {
+        try self.init(parseFunction: { htmlReadMemory($0, $1, $2, $3, $4) }, cChars: cChars, options: options)
+    }
 }

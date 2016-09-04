@@ -21,240 +21,240 @@
 
 import Foundation
 #if os(Linux)
-    import CLibXML2Linux
+import CLibXML2Linux
 #else
-    import CLibXML2Mac
+import CLibXML2Mac
 #endif
 
 /**
-*  The `Queryable` protocol is adopted by `XMLDocument`, `HTMLDocument` and `XMLElement`, denoting that they can search for elements using XPath or CSS selectors.
-*/
+ *  The `Queryable` protocol is adopted by `XMLDocument`, `HTMLDocument` and `XMLElement`, denoting that they can search for elements using XPath or CSS selectors.
+ */
 public protocol Queryable {
-  /**
-  Returns the results for an XPath selector.
-  
-  - parameter xpath: XPath selector string.
-  
-  - returns: An enumerable collection of results.
-  */
-  func xpath(_ xpath: String) -> NodeSet
-  
-  /**
-  Returns the first elements matching an XPath selector, or `nil` if there are no results.
-  
-  - parameter xpath: The XPath selector.
-  
-  - returns: The child element.
-  */
-  func firstChild(xpath: String) -> XMLElement?
-  
-  /**
-  Returns the results for a CSS selector.
-  
-  - parameter css: The CSS selector string.
-  
-  - returns: An enumerable collection of results.
-  */
-  func css(_ css: String) -> NodeSet
-  
-  /**
-  Returns the first elements matching an CSS selector, or `nil` if there are no results.
-  
-  - parameter css: The CSS selector.
-  
-  - returns: The child element.
-  */
-  func firstChild(css: String) -> XMLElement?
-  
-  /**
-  Returns the result for evaluating an XPath selector that contains XPath function.
-  
-  - parameter xpath: The XPath query string.
-  
-  - returns: The eval function result.
-  */
-  func eval(xpath: String) -> XPathFunctionResult?
+    /**
+     Returns the results for an XPath selector.
+     
+     - parameter xpath: XPath selector string.
+     
+     - returns: An enumerable collection of results.
+     */
+    func xpath(_ xpath: String) -> NodeSet
+    
+    /**
+     Returns the first elements matching an XPath selector, or `nil` if there are no results.
+     
+     - parameter xpath: The XPath selector.
+     
+     - returns: The child element.
+     */
+    func firstChild(xpath: String) -> XMLElement?
+    
+    /**
+     Returns the results for a CSS selector.
+     
+     - parameter css: The CSS selector string.
+     
+     - returns: An enumerable collection of results.
+     */
+    func css(_ css: String) -> NodeSet
+    
+    /**
+     Returns the first elements matching an CSS selector, or `nil` if there are no results.
+     
+     - parameter css: The CSS selector.
+     
+     - returns: The child element.
+     */
+    func firstChild(css: String) -> XMLElement?
+    
+    /**
+     Returns the result for evaluating an XPath selector that contains XPath function.
+     
+     - parameter xpath: The XPath query string.
+     
+     - returns: The eval function result.
+     */
+    func eval(xpath: String) -> XPathFunctionResult?
 }
 
 /// Result for evaluating a XPath expression
 open class XPathFunctionResult {
-  /// Boolean value
-  open fileprivate(set) lazy var boolValue: Bool = {
-    return self.cXPath.pointee.boolval != 0
-  }()
-  
-  /// Double value
-  open fileprivate(set) lazy var doubleValue: Double = {
-    return self.cXPath.pointee.floatval
-  }()
-  
-  /// String value
-  open fileprivate(set) lazy var stringValue: String = {
-    return ^-^self.cXPath.pointee.stringval ?? ""
-  }()
-  
-  fileprivate let cXPath: xmlXPathObjectPtr
-  internal init?(cXPath: xmlXPathObjectPtr?) {
-    guard let cXPath = cXPath else {
-      return nil
+    /// Boolean value
+    open fileprivate(set) lazy var boolValue: Bool = {
+        return self.cXPath.pointee.boolval != 0
+    }()
+    
+    /// Double value
+    open fileprivate(set) lazy var doubleValue: Double = {
+        return self.cXPath.pointee.floatval
+    }()
+    
+    /// String value
+    open fileprivate(set) lazy var stringValue: String = {
+        return ^-^self.cXPath.pointee.stringval ?? ""
+    }()
+    
+    fileprivate let cXPath: xmlXPathObjectPtr
+    internal init?(cXPath: xmlXPathObjectPtr?) {
+        guard let cXPath = cXPath else {
+            return nil
+        }
+        self.cXPath = cXPath
     }
-    self.cXPath = cXPath
-  }
-  
-  deinit {
-    xmlXPathFreeObject(cXPath)
-  }
+    
+    deinit {
+        xmlXPathFreeObject(cXPath)
+    }
 }
 
 extension XMLDocument: Queryable {
-  /**
-  Returns the results for an XPath selector.
-  
-  - parameter xpath: XPath selector string.
-  
-  - returns: An enumerable collection of results.
-  */
-  public func xpath(_ xpath: String) -> NodeSet {
-    return root == nil ?XPathNodeSet.emptySet :root!.xpath(xpath)
-  }
-  
-  /**
-  Returns the first elements matching an XPath selector, or `nil` if there are no results.
-  
-  - parameter xpath: The XPath selector.
-  
-  - returns: The child element.
-  */
-  public func firstChild(xpath: String) -> XMLElement? {
-    return root?.firstChild(xpath: xpath)
-  }
-  
-  /**
-  Returns the results for a CSS selector.
-  
-  - parameter css: The CSS selector string.
-  
-  - returns: An enumerable collection of results.
-  */
-  public func css(_ css: String) -> NodeSet {
-    return root == nil ?XPathNodeSet.emptySet :root!.css(css)
-  }
-  
-  /**
-  Returns the first elements matching an CSS selector, or `nil` if there are no results.
-  
-  - parameter css: The CSS selector.
-  
-  - returns: The child element.
-  */
-  public func firstChild(css: String) -> XMLElement? {
-    return root?.firstChild(css: css)
-  }
-  
-  /**
-  Returns the result for evaluating an XPath selector that contains XPath function.
-  
-  - parameter xpath: The XPath query string.
-  
-  - returns: The eval function result.
-  */
-  public func eval(xpath: String) -> XPathFunctionResult? {
-    return root?.eval(xpath: xpath)
-  }
+    /**
+     Returns the results for an XPath selector.
+     
+     - parameter xpath: XPath selector string.
+     
+     - returns: An enumerable collection of results.
+     */
+    public func xpath(_ xpath: String) -> NodeSet {
+        return root == nil ?XPathNodeSet.emptySet :root!.xpath(xpath)
+    }
+    
+    /**
+     Returns the first elements matching an XPath selector, or `nil` if there are no results.
+     
+     - parameter xpath: The XPath selector.
+     
+     - returns: The child element.
+     */
+    public func firstChild(xpath: String) -> XMLElement? {
+        return root?.firstChild(xpath: xpath)
+    }
+    
+    /**
+     Returns the results for a CSS selector.
+     
+     - parameter css: The CSS selector string.
+     
+     - returns: An enumerable collection of results.
+     */
+    public func css(_ css: String) -> NodeSet {
+        return root == nil ?XPathNodeSet.emptySet :root!.css(css)
+    }
+    
+    /**
+     Returns the first elements matching an CSS selector, or `nil` if there are no results.
+     
+     - parameter css: The CSS selector.
+     
+     - returns: The child element.
+     */
+    public func firstChild(css: String) -> XMLElement? {
+        return root?.firstChild(css: css)
+    }
+    
+    /**
+     Returns the result for evaluating an XPath selector that contains XPath function.
+     
+     - parameter xpath: The XPath query string.
+     
+     - returns: The eval function result.
+     */
+    public func eval(xpath: String) -> XPathFunctionResult? {
+        return root?.eval(xpath: xpath)
+    }
 }
 
 extension XMLElement: Queryable {
-  /**
-  Returns the results for an XPath selector.
-  
-  - parameter xpath: XPath selector string.
-  
-  - returns: An enumerable collection of results.
-  */
-  public func xpath(_ xpath: String) -> NodeSet {
-    guard let cXPath = self.cXPath(xpathString: xpath) else {
-      return XPathNodeSet.emptySet
-    }
-    return XPathNodeSet(cXPath: cXPath, document: document)
-  }
-  
-  /**
-  Returns the first elements matching an XPath selector, or `nil` if there are no results.
-  
-  - parameter xpath: The XPath selector.
-  
-  - returns: The child element.
-  */
-  public func firstChild(xpath: String) -> XMLElement? {
-    return self.xpath(xpath).first
-  }
-  
-  /**
-  Returns the results for a CSS selector.
-  
-  - parameter css: The CSS selector string.
-  
-  - returns: An enumerable collection of results.
-  */
-  public func css(_ css: String) -> NodeSet {
-    return xpath(XPath(fromCSS:css))
-  }
-  
-  /**
-  Returns the first elements matching an CSS selector, or `nil` if there are no results.
-  
-  - parameter css: The CSS selector.
-  
-  - returns: The child element.
-  */
-  public func firstChild(css: String) -> XMLElement? {
-    return self.css(css).first
-  }
-  
-  /**
-  Returns the result for evaluating an XPath selector that contains XPath function.
-  
-  - parameter xpath: The XPath query string.
-  
-  - returns: The eval function result.
-  */
-  public func eval(xpath: String) -> XPathFunctionResult? {
-    return XPathFunctionResult(cXPath: cXPath(xpathString: xpath))
-  }
-  
-  fileprivate func cXPath(xpathString: String) -> xmlXPathObjectPtr? {
-    guard let context = xmlXPathNewContext(cNode.pointee.doc) else {
-      return nil
-    }
-    context.pointee.node = cNode
-    var node = cNode
-    while node.pointee.parent != nil {
-      var curNs = node.pointee.nsDef
-      while let ns = curNs {
-        var prefix = ns.pointee.prefix
-        var prefixChars = [CChar]()
-        if prefix == nil && !document.defaultNamespaces.isEmpty {
-          let href = (^-^ns.pointee.href)!
-          
-          if let defaultPrefix = document.defaultNamespaces[href] {
-            prefixChars = defaultPrefix.cString(using: String.Encoding.utf8) ?? []
-            prefixChars.withUnsafeBufferPointer {(cArray: UnsafeBufferPointer<CChar>) -> Void in
-                prefix = UnsafeRawPointer(cArray.baseAddress)?.assumingMemoryBound(to: xmlChar.self)
-            }
-          }
+    /**
+     Returns the results for an XPath selector.
+     
+     - parameter xpath: XPath selector string.
+     
+     - returns: An enumerable collection of results.
+     */
+    public func xpath(_ xpath: String) -> NodeSet {
+        guard let cXPath = self.cXPath(xpathString: xpath) else {
+            return XPathNodeSet.emptySet
         }
-        if prefix != nil {
-          xmlXPathRegisterNs(context, prefix, ns.pointee.href)
-        }
-        curNs = ns.pointee.next
-      }
-      node = node.pointee.parent
+        return XPathNodeSet(cXPath: cXPath, document: document)
     }
-    let xmlXPath = xmlXPathEvalExpression(xpathString, context)
     
-    xmlXPathFreeContext(context)
-    return xmlXPath
-  }
+    /**
+     Returns the first elements matching an XPath selector, or `nil` if there are no results.
+     
+     - parameter xpath: The XPath selector.
+     
+     - returns: The child element.
+     */
+    public func firstChild(xpath: String) -> XMLElement? {
+        return self.xpath(xpath).first
+    }
+    
+    /**
+     Returns the results for a CSS selector.
+     
+     - parameter css: The CSS selector string.
+     
+     - returns: An enumerable collection of results.
+     */
+    public func css(_ css: String) -> NodeSet {
+        return xpath(XPath(fromCSS:css))
+    }
+    
+    /**
+     Returns the first elements matching an CSS selector, or `nil` if there are no results.
+     
+     - parameter css: The CSS selector.
+     
+     - returns: The child element.
+     */
+    public func firstChild(css: String) -> XMLElement? {
+        return self.css(css).first
+    }
+    
+    /**
+     Returns the result for evaluating an XPath selector that contains XPath function.
+     
+     - parameter xpath: The XPath query string.
+     
+     - returns: The eval function result.
+     */
+    public func eval(xpath: String) -> XPathFunctionResult? {
+        return XPathFunctionResult(cXPath: cXPath(xpathString: xpath))
+    }
+    
+    fileprivate func cXPath(xpathString: String) -> xmlXPathObjectPtr? {
+        guard let context = xmlXPathNewContext(cNode.pointee.doc) else {
+            return nil
+        }
+        context.pointee.node = cNode
+        var node = cNode
+        while node.pointee.parent != nil {
+            var curNs = node.pointee.nsDef
+            while let ns = curNs {
+                var prefix = ns.pointee.prefix
+                var prefixChars = [CChar]()
+                if prefix == nil && !document.defaultNamespaces.isEmpty {
+                    let href = (^-^ns.pointee.href)!
+                    
+                    if let defaultPrefix = document.defaultNamespaces[href] {
+                        prefixChars = defaultPrefix.cString(using: String.Encoding.utf8) ?? []
+                        prefixChars.withUnsafeBufferPointer {(cArray: UnsafeBufferPointer<CChar>) -> Void in
+                            prefix = UnsafeRawPointer(cArray.baseAddress)?.assumingMemoryBound(to: xmlChar.self)
+                        }
+                    }
+                }
+                if prefix != nil {
+                    xmlXPathRegisterNs(context, prefix, ns.pointee.href)
+                }
+                curNs = ns.pointee.next
+            }
+            node = node.pointee.parent
+        }
+        let xmlXPath = xmlXPathEvalExpression(xpathString, context)
+        
+        xmlXPathFreeContext(context)
+        return xmlXPath
+    }
 }
 
 private class RegexConstants {
@@ -289,44 +289,44 @@ internal func XPath(fromCSS css: String) -> String {
                 if prefix == nil && idx != 0 {
                     prefix = "descendant::"
                 }
-
+                
                 if let symbolRange = token.rangeOfCharacter(from: CharacterSet(charactersIn: "#.[]")) {
                     let symbol = symbolRange.lowerBound == token.startIndex ?"*" :""
                     var xpathComponent = token.substring(to: symbolRange.lowerBound)
                     let nsrange = NSRange(location: 0, length: token.utf16.count)
-
+                    
                     if let result = RegexConstants.idRegex.firstMatch(in: token, options: [], range: nsrange), result.numberOfRanges > 1 {
                         #if os(Linux)
-                        xpathComponent += "\(symbol)[@id = '\(token[result.range(at: 1)])']"
+                            xpathComponent += "\(symbol)[@id = '\(token[result.range(at: 1)])']"
                         #else
-                        xpathComponent += "\(symbol)[@id = '\(token[result.rangeAt(1)])']"
+                            xpathComponent += "\(symbol)[@id = '\(token[result.rangeAt(1)])']"
                         #endif
                     }
-
+                    
                     for result in RegexConstants.classRegex.matches(in: token, options: [], range: nsrange) where result.numberOfRanges > 1 {
                         #if os(Linux)
-                        xpathComponent += "\(symbol)[contains(concat(' ',normalize-space(@class),' '),' \(token[result.range(at: 1)]) ')]"
+                            xpathComponent += "\(symbol)[contains(concat(' ',normalize-space(@class),' '),' \(token[result.range(at: 1)]) ')]"
                         #else
-                        xpathComponent += "\(symbol)[contains(concat(' ',normalize-space(@class),' '),' \(token[result.rangeAt(1)]) ')]"
+                            xpathComponent += "\(symbol)[contains(concat(' ',normalize-space(@class),' '),' \(token[result.rangeAt(1)]) ')]"
                         #endif
                     }
-
+                    
                     for result in RegexConstants.attributeRegex.matches(in: token, options: [], range: nsrange) where result.numberOfRanges > 1 {
                         #if os(Linux)
-                        xpathComponent += "[@\(token[result.range(at: 1)])]"
+                            xpathComponent += "[@\(token[result.range(at: 1)])]"
                         #else
-                        xpathComponent += "[@\(token[result.rangeAt(1)])]"
+                            xpathComponent += "[@\(token[result.rangeAt(1)])]"
                         #endif
                     }
-
+                    
                     token = xpathComponent
                 }
-
+                
                 if prefix != nil {
-                  token = prefix! + token
-                  prefix = nil
+                    token = prefix! + token
+                    prefix = nil
                 }
-
+                
                 xpathComponents.append(token)
             }
         }
