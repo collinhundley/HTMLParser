@@ -37,12 +37,15 @@ open class XMLDocument {
     
     /// The string encoding for the document. This is NSUTF8StringEncoding if no encoding is set, or it cannot be calculated.
     open fileprivate(set) lazy var encoding: String.Encoding = {
+        // Note: CFString conversion not working on Linux
+        #if os(OSX)
         if let encodingName = ^-^self.cDocument.pointee.encoding {
             let encoding = CFStringConvertIANACharSetNameToEncoding(encodingName as CFString!)
             if encoding != kCFStringEncodingInvalidId {
                 return String.Encoding(rawValue: UInt(CFStringConvertEncodingToNSStringEncoding(encoding)))
             }
         }
+        #endif
         return String.Encoding.utf8
     }()
     

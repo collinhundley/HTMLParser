@@ -258,11 +258,19 @@ extension XMLElement: Queryable {
 }
 
 private class RegexConstants {
+    #if os(Linux)
+    static let idRegex = try! RegularExpression(pattern: "\\#([\\w-_]+)", options: [])
+    
+    static let classRegex = try! RegularExpression(pattern: "\\.([^\\.]+)", options: [])
+    
+    static let attributeRegex = try! RegularExpression(pattern: "\\[([^\\[\\]]+)\\]", options: [])
+    #else
     static let idRegex = try! NSRegularExpression(pattern: "\\#([\\w-_]+)", options: [])
     
     static let classRegex = try! NSRegularExpression(pattern: "\\.([^\\.]+)", options: [])
     
     static let attributeRegex = try! NSRegularExpression(pattern: "\\[([^\\[\\]]+)\\]", options: [])
+    #endif
 }
 
 internal func XPath(fromCSS css: String) -> String {
