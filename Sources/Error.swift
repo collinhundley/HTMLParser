@@ -27,8 +27,8 @@ import CLibXML2Mac
 #endif
 
 /**
-*  XMLError enumeration.
-*/
+ *  XMLError enumeration.
+ */
 public enum XMLError: Error {
     /// No error
     case noError
@@ -38,7 +38,7 @@ public enum XMLError: Error {
     case invalidData
     /// XML Parser failed to parse the document
     case parserFailure
-
+    
     internal static func lastError(defaultError: XMLError = .noError) -> XMLError {
         guard let errorPtr = xmlGetLastError() else {
             return defaultError

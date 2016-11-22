@@ -28,14 +28,13 @@ import CLibXML2Mac
 #endif
 
 // Public Helpers
-
 /// For printing an `XMLNode`
 extension XMLNode: CustomStringConvertible, CustomDebugStringConvertible {
     /// String printed by `print` function
     public var description: String {
         return self.rawXML
     }
-
+    
     /// String printed by `debugPrint` function
     public var debugDescription: String {
         return self.rawXML
@@ -48,7 +47,7 @@ extension XMLDocument: CustomStringConvertible, CustomDebugStringConvertible {
     public var description: String {
         return self.root?.rawXML ?? ""
     }
-  
+    
     /// String printed by `debugPrint` function
     public var debugDescription: String {
         return self.root?.rawXML ?? ""
@@ -56,7 +55,6 @@ extension XMLDocument: CustomStringConvertible, CustomDebugStringConvertible {
 }
 
 // Internal Helpers
-
 internal extension String {
     subscript (nsrange: NSRange) -> String {
         let start = utf16.index(utf16.startIndex, offsetBy: nsrange.location)
@@ -66,7 +64,6 @@ internal extension String {
 }
 
 // Just a smiling helper operator making frequent UnsafePointer -> String cast
-
 prefix operator ^-^
 internal prefix func ^-^ <T> (ptr: UnsafePointer<T>?) -> String? {
     if let ptr = ptr {
@@ -85,7 +82,7 @@ internal prefix func ^-^ <T> (ptr: UnsafeMutablePointer<T>?) -> String? {
 internal struct LinkedCNodes: Sequence, IteratorProtocol {
     internal let head: xmlNodePtr?
     internal let types: [xmlElementType]
-  
+    
     fileprivate var cursor: xmlNodePtr?
     mutating func next() -> xmlNodePtr? {
         defer {
@@ -98,7 +95,7 @@ internal struct LinkedCNodes: Sequence, IteratorProtocol {
         }
         return cursor
     }
-  
+    
     init(head: xmlNodePtr?, types: [xmlElementType] = [XML_ELEMENT_NODE]) {
         self.head = head
         self.cursor = head
@@ -111,7 +108,7 @@ internal func cXMLNode(_ node: xmlNodePtr?, matchesTag tag: String, inNamespace 
         return false
     }
     var matches = name.compare(tag, options: .caseInsensitive) == .orderedSame
-  
+    
     if let ns = ns {
         guard let prefix = ^-^node?.pointee.ns.pointee.prefix else {
             return false

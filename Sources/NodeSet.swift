@@ -72,9 +72,7 @@ open class NodeSet: Collection {
     
     /**
      Get the Nth node from set.
-     
      - parameter idx: node index
-     
      - returns: the idx'th node, nil if out of range
      */
     open subscript(_ idx: Index) -> XMLElement {
@@ -84,9 +82,7 @@ open class NodeSet: Collection {
     
     /**
      Get the index after `idx`
-     
      - parameter idx: node index
-     
      - returns: the index after `idx`
      */
     open func index(after idx: Index) -> Index {

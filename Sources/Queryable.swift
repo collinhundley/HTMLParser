@@ -258,19 +258,11 @@ extension XMLElement: Queryable {
 }
 
 private class RegexConstants {
-    #if os(Linux)
-    static let idRegex = try! RegularExpression(pattern: "\\#([\\w-_]+)", options: [])
-    
-    static let classRegex = try! RegularExpression(pattern: "\\.([^\\.]+)", options: [])
-    
-    static let attributeRegex = try! RegularExpression(pattern: "\\[([^\\[\\]]+)\\]", options: [])
-    #else
     static let idRegex = try! NSRegularExpression(pattern: "\\#([\\w-_]+)", options: [])
     
     static let classRegex = try! NSRegularExpression(pattern: "\\.([^\\.]+)", options: [])
     
     static let attributeRegex = try! NSRegularExpression(pattern: "\\[([^\\[\\]]+)\\]", options: [])
-    #endif
 }
 
 internal func XPath(fromCSS css: String) -> String {
@@ -296,27 +288,15 @@ internal func XPath(fromCSS css: String) -> String {
                     let nsrange = NSRange(location: 0, length: token.utf16.count)
                     
                     if let result = RegexConstants.idRegex.firstMatch(in: token, options: [], range: nsrange), result.numberOfRanges > 1 {
-                        #if os(Linux)
-                            xpathComponent += "\(symbol)[@id = '\(token[result.range(at: 1)])']"
-                        #else
-                            xpathComponent += "\(symbol)[@id = '\(token[result.rangeAt(1)])']"
-                        #endif
+                        xpathComponent += "\(symbol)[@id = '\(token[result.rangeAt(1)])']"
                     }
                     
                     for result in RegexConstants.classRegex.matches(in: token, options: [], range: nsrange) where result.numberOfRanges > 1 {
-                        #if os(Linux)
-                            xpathComponent += "\(symbol)[contains(concat(' ',normalize-space(@class),' '),' \(token[result.range(at: 1)]) ')]"
-                        #else
-                            xpathComponent += "\(symbol)[contains(concat(' ',normalize-space(@class),' '),' \(token[result.rangeAt(1)]) ')]"
-                        #endif
+                        xpathComponent += "\(symbol)[contains(concat(' ',normalize-space(@class),' '),' \(token[result.rangeAt(1)]) ')]"
                     }
                     
                     for result in RegexConstants.attributeRegex.matches(in: token, options: [], range: nsrange) where result.numberOfRanges > 1 {
-                        #if os(Linux)
-                            xpathComponent += "[@\(token[result.range(at: 1)])]"
-                        #else
-                            xpathComponent += "[@\(token[result.rangeAt(1)])]"
-                        #endif
+                        xpathComponent += "[@\(token[result.rangeAt(1)])]"
                     }
                     
                     token = xpathComponent

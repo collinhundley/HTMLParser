@@ -28,17 +28,17 @@ import CLibXML2Mac
 
 /// Represents an element in `XMLDocument` or `HTMLDocument`
 open class XMLElement: XMLNode {
-  
+    
     /// The element's namespace.
     open fileprivate(set) lazy var namespace: String? = {
         return ^-^(self.cNode.pointee.ns != nil ?self.cNode.pointee.ns.pointee.prefix :nil)
     }()
-
+    
     /// The element's tag.
     open fileprivate(set) lazy var tag: String? = {
         return ^-^self.cNode.pointee.name
     }()
-
+    
     // MARK: - Accessing Attributes
     /// All attributes for the element.
     open fileprivate(set) lazy var attributes: [String : String] = {
@@ -52,48 +52,48 @@ open class XMLElement: XMLNode {
         }
         return attributes
     }()
-
+    
     /**
-    Returns the value for the attribute with the specified key.
-
-    - parameter name: The attribute name.
-    - parameter ns:   The namespace, or `nil` by default if not using a namespace
-
-    - returns: The attribute value, or `nil` if the attribute is not defined.
-    */
+     Returns the value for the attribute with the specified key.
+     
+     - parameter name: The attribute name.
+     - parameter ns:   The namespace, or `nil` by default if not using a namespace
+     
+     - returns: The attribute value, or `nil` if the attribute is not defined.
+     */
     open func attr(_ name: String, namespace ns: String? = nil) -> String? {
         var value: String? = nil
-
+        
         let xmlValue: UnsafeMutablePointer<xmlChar>?
         if let ns = ns {
             xmlValue = xmlGetNsProp(cNode, name, ns)
         } else {
             xmlValue = xmlGetProp(cNode, name)
         }
-
+        
         if let xmlValue = xmlValue {
             value = ^-^xmlValue
             xmlFree(xmlValue)
         }
         return value
     }
-
+    
     // MARK: - Accessing Children
-
+    
     /// The element's children elements.
     open var children: [XMLElement] {
         return LinkedCNodes(head: cNode.pointee.children).flatMap {
             XMLElement(cNode: $0, document: self.document)
         }
     }
-
+    
     /**
-    Get the element's child nodes of specified types
-
-    - parameter types: type of nodes that should be fetched (e.g. .Element, .Text, .Comment)
-
-    - returns: all children of specified types
-    */
+     Get the element's child nodes of specified types
+     
+     - parameter types: type of nodes that should be fetched (e.g. .Element, .Text, .Comment)
+     
+     - returns: all children of specified types
+     */
     open func childNodes(ofTypes types: [XMLNodeType]) -> [XMLNode] {
         return LinkedCNodes(head: cNode.pointee.children, types: types).flatMap { node in
             switch node.pointee.type {
@@ -104,15 +104,15 @@ open class XMLElement: XMLNode {
             }
         }
     }
-
+    
     /**
-    Returns the first child element with a tag, or `nil` if no such element exists.
-
-    - parameter tag: The tag name.
-    - parameter ns:  The namespace, or `nil` by default if not using a namespace
-
-    - returns: The child element.
-    */
+     Returns the first child element with a tag, or `nil` if no such element exists.
+     
+     - parameter tag: The tag name.
+     - parameter ns:  The namespace, or `nil` by default if not using a namespace
+     
+     - returns: The child element.
+     */
     open func firstChild(tag: String, inNamespace ns: String? = nil) -> XMLElement? {
         var nodePtr = cNode.pointee.children
         while let cNode = nodePtr {
@@ -123,55 +123,56 @@ open class XMLElement: XMLNode {
         }
         return nil
     }
-
+    
     /**
-    Returns all children elements with the specified tag.
-
-    - parameter tag: The tag name.
-    - parameter ns:  The namepsace, or `nil` by default if not using a namespace
-
-    - returns: The children elements.
-    */
+     Returns all children elements with the specified tag.
+     
+     - parameter tag: The tag name.
+     - parameter ns:  The namepsace, or `nil` by default if not using a namespace
+     
+     - returns: The children elements.
+     */
     open func children(tag: String, inNamespace ns: String? = nil) -> [XMLElement] {
         return LinkedCNodes(head: cNode.pointee.children).flatMap {
-            cXMLNode($0, matchesTag: tag, inNamespace: ns) ? XMLElement(cNode: $0, document: self.document) : nil
+            cXMLNode($0, matchesTag: tag, inNamespace: ns)
+                ? XMLElement(cNode: $0, document: self.document) : nil
         }
     }
-
+    
     // MARK: - Accessing Content
     /// Whether the element has a value.
     open var isBlank: Bool {
         return stringValue.isEmpty
     }
-
+    
     /// A number representation of the element's value, which is generated from the document's `numberFormatter` property.
     open fileprivate(set) lazy var numberValue: NSNumber? = {
         return self.document.numberFormatter.number(from: self.stringValue)
     }()
-
+    
     /// A date representation of the element's value, which is generated from the document's `dateFormatter` property.
     open fileprivate(set) lazy var dateValue: Date? = {
         return self.document.dateFormatter.date(from: self.stringValue)
     }()
-
+    
     /**
-    Returns the child element at the specified index.
-
-    - parameter idx: The index.
-
-    - returns: The child element.
-    */
+     Returns the child element at the specified index.
+     
+     - parameter idx: The index.
+     
+     - returns: The child element.
+     */
     open subscript (idx: Int) -> XMLElement? {
         return children[idx]
     }
-
+    
     /**
-    Returns the value for the attribute with the specified key.
-
-    - parameter name: The attribute name.
-
-    - returns: The attribute value, or `nil` if the attribute is not defined.
-    */
+     Returns the value for the attribute with the specified key.
+     
+     - parameter name: The attribute name.
+     
+     - returns: The attribute value, or `nil` if the attribute is not defined.
+     */
     open subscript (name: String) -> String? {
         return attr(name)
     }

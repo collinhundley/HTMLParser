@@ -92,39 +92,39 @@ public func ~=(lhs: XMLNodeType, rhs: XMLNodeType) -> Bool {
 open class XMLNode {
     /// The document containing the element.
     open unowned let document: XMLDocument
-  
+    
     /// The type of the XMLNode
     open var type: XMLNodeType {
         return cNode.pointee.type
     }
-  
+    
     /// The element's line number.
     open fileprivate(set) lazy var lineNumber: Int = {
         return xmlGetLineNo(self.cNode)
     }()
-  
+    
     // MARK: - Accessing Parent and Sibling Elements
     /// The element's parent element.
     open fileprivate(set) lazy var parent: XMLElement? = {
         return XMLElement(cNode: self.cNode.pointee.parent, document: self.document)
     }()
-  
+    
     /// The element's next sibling.
     open fileprivate(set) lazy var previousSibling: XMLElement? = {
         return XMLElement(cNode: self.cNode.pointee.prev, document: self.document)
     }()
-  
+    
     /// The element's previous sibling.
     open fileprivate(set) lazy var nextSibling: XMLElement? = {
         return XMLElement(cNode: self.cNode.pointee.next, document: self.document)
     }()
-  
+    
     // MARK: - Accessing Contents
     /// Whether this is a HTML node
     open var isHTML: Bool {
         return UInt32(self.cNode.pointee.doc.pointee.properties) & XML_DOC_HTML.rawValue == XML_DOC_HTML.rawValue
     }
-
+    
     /// A string representation of the element's value.
     open fileprivate(set) lazy var stringValue : String = {
         let key = xmlNodeGetContent(self.cNode)
@@ -132,7 +132,7 @@ open class XMLNode {
         xmlFree(key)
         return stringValue
     }()
-  
+    
     /// The raw XML string of the element.
     open fileprivate(set) lazy var rawXML: String = {
         let buffer = xmlBufferCreate()
@@ -145,7 +145,7 @@ open class XMLNode {
         xmlBufferFree(buffer)
         return dumped
     }()
-  
+    
     /// Convert this node to XMLElement if it is an element node
     open func toElement() -> XMLElement? {
         return self as? XMLElement
