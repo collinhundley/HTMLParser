@@ -8,10 +8,5 @@
 
 import Foundation
 
-#if !os(Linux)
-	typealias NCRegularExpression = NSRegularExpression
-	typealias NCTextCheckingResult = NSTextCheckingResult
-#else
-	typealias NCRegularExpression = NSRegularExpression
-	typealias NCTextCheckingResult = TextCheckingResult
-#endif
+typealias NCRegularExpression = NSRegularExpression
+typealias NCTextCheckingResult = NSTextCheckingResult
