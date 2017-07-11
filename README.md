@@ -1,6 +1,6 @@
 # HTMLParser
-HTML/XML parser in Swift with XPath + CSS support
+A pure Swift HTML + CSS parser.
 
-This repo was originally forked from https://github.com/cezheng/Fuzi.
+This repo is borrowed from https://github.com/scinfu/SwiftSoup, a Swift port of the Java [Jsoup](https://jsoup.org) library.
 
-Updated for Swift 3, SPM and Linux compatibility.
+Updated for Swift 4 + Linux compatibility.
