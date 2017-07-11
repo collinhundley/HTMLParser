@@ -1,5 +1,5 @@
 # HTMLParser
-A pure swift HTML + CSS parser.
+A pure Swift HTML + CSS parser.
 
 This repo is borrowed from https://github.com/scinfu/SwiftSoup, a Swift port of the Java [Jsoup](https://jsoup.org) library.
 
