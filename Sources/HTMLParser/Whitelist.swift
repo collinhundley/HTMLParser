@@ -643,7 +643,6 @@ extension TypedValue: Hashable {
         let prime = 31
         var result = 1
         result = result.multipliedReportingOverflow(by: prime).partialValue.addingReportingOverflow(value.hash).partialValue
-//        result = Int.addWithOverflow(Int.multiplyWithOverflow(prime, result).0, value.hash).0
         return result
     }
 }
